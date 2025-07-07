@@ -1,69 +1,74 @@
-# React + TypeScript + Vite
+# Authentication App
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+User authentication application built with React + TypeScript + Node.js
 
-Currently, two official plugins are available:
+## 🚀 Quick Start
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+### 1. Install Dependencies
 
-## Expanding the ESLint configuration
+```bash
+# Frontend
+npm install
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      ...tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      ...tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      ...tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+# Backend
+cd backend
+npm install
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+### 2. Environment Setup
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+**Frontend (.env):**
 
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```env
+VITE_API_BASE_URL=http://localhost:3000
 ```
+
+**Backend (backend/.env):**
+
+```env
+PORT=3000
+JWT_SECRET=your-secret-key-here
+```
+
+### 3. Run Application
+
+**Terminal 1 - Backend:**
+
+```bash
+cd backend
+npm run dev
+```
+
+**Terminal 2 - Frontend:**
+
+```bash
+npm run dev
+```
+
+- Frontend: http://localhost:5173
+- Backend: http://localhost:3000
+
+## 📱 Features
+
+- ✅ User Registration/Login
+- ✅ JWT Protected Routes
+- ✅ Dashboard after Authentication
+- ✅ Responsive UI with Tailwind CSS
+
+## 🧪 Test Ready
+
+Key buttons include `data-testid` attributes:
+
+- `create-btn` - Account creation button
+- `login-btn` - Login button
+- `logout-btn` - Logout button
+
+## 📦 Tech Stack
+
+**Frontend:** React 19, TypeScript, Vite, Tailwind CSS, React Router, Zustand
+**Backend:** Node.js, Express, JWT, bcryptjs
+
+## ⚠️ Notes
+
+- Backend uses in-memory storage (data will be lost on restart)
+- For production, replace with a real database
