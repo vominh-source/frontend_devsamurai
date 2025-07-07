@@ -20,13 +20,6 @@ npm install
 VITE_API_BASE_URL=http://localhost:3000
 ```
 
-**Backend (backend/.env):**
-
-```env
-PORT=3000
-JWT_SECRET=your-secret-key-here
-```
-
 ### 3. Run Application
 
 ```bash
