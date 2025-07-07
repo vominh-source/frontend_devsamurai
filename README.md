@@ -10,9 +10,6 @@ User authentication application built with React + TypeScript + Node.js
 # Frontend
 npm install
 
-# Backend
-cd backend
-npm install
 ```
 
 ### 2. Environment Setup
@@ -31,15 +28,6 @@ JWT_SECRET=your-secret-key-here
 ```
 
 ### 3. Run Application
-
-**Terminal 1 - Backend:**
-
-```bash
-cd backend
-npm run dev
-```
-
-**Terminal 2 - Frontend:**
 
 ```bash
 npm run dev
