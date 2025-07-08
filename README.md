@@ -1,17 +1,12 @@
 # Authentication App
 
-User authentication application built with React + TypeScript + Node.js
+Modern user authentication application with automatic token refresh functionality
 
 ## 🚀 Quick Start
 
 ### 1. Install Dependencies
 
 ```bash
-# Frontend
-npm install
-
-# Backend
-cd backend
 npm install
 ```
 
@@ -23,37 +18,50 @@ npm install
 VITE_API_BASE_URL=http://localhost:3000
 ```
 
-**Backend (backend/.env):**
-
-```env
-PORT=3000
-JWT_SECRET=your-secret-key-here
-```
-
 ### 3. Run Application
-
-**Terminal 1 - Backend:**
-
-```bash
-cd backend
-npm run dev
-```
-
-**Terminal 2 - Frontend:**
 
 ```bash
 npm run dev
 ```
 
 - Frontend: http://localhost:5173
-- Backend: http://localhost:3000
+- Backend: Make sure your backend is running on http://localhost:3000
 
 ## 📱 Features
 
-- ✅ User Registration/Login
-- ✅ JWT Protected Routes
-- ✅ Dashboard after Authentication
-- ✅ Responsive UI with Tailwind CSS
+- ✅ **User Registration/Login** - Complete auth flow
+- ✅ **JWT Protected Routes** - Secure route protection
+- ✅ **Automatic Token Refresh** - Seamless token renewal
+- ✅ **Dashboard after Authentication** - Protected user area
+- ✅ **Responsive UI** - Mobile-friendly with Tailwind CSS
+- ✅ **Error Handling** - Comprehensive error management
+- ✅ **Loading States** - User feedback during operations
+
+## 🔄 Token Refresh Implementation
+
+### Automatic Refresh Flow
+
+```
+API Request (expired token) → 401 Error → Auto Refresh → Retry Request → Success
+```
+
+### Key Features
+
+- **Transparent**: Apps don't need to handle refresh manually
+- **Resilient**: Auto-recovery from expired tokens
+- **Secure**: Proper cleanup on refresh failure
+- **No Infinite Loops**: Smart retry prevention
+
+### Backend Requirements
+
+Your backend should provide these endpoints:
+
+```bash
+POST /auth/signup    # Returns: { access_token, refresh_token }
+POST /auth/signin    # Returns: { access_token, refresh_token }
+POST /auth/refresh   # Returns: { access_token, refresh_token }
+GET  /users/me       # Returns: user object
+```
 
 ## 🧪 Test Ready
 
@@ -65,10 +73,50 @@ Key buttons include `data-testid` attributes:
 
 ## 📦 Tech Stack
 
-**Frontend:** React 19, TypeScript, Vite, Tailwind CSS, React Router, Zustand
-**Backend:** Node.js, Express, JWT, bcryptjs
+**Frontend:** React 19, TypeScript, Vite, Tailwind CSS, React Router, Zustand, Axios
 
-## ⚠️ Notes
+**Key Libraries:**
 
-- Backend uses in-memory storage (data will be lost on restart)
-- For production, replace with a real database
+- **Zustand** - State management
+- **Axios** - HTTP client with interceptors
+- **React Hook Form** - Form handling
+- **Zod** - Schema validation
+- **Tailwind CSS** - Styling
+- **shadcn/ui** - UI components
+
+## 🔧 Architecture
+
+### Authentication Flow
+
+1. **Login/Signup** → Get tokens from backend
+2. **Store Tokens** → localStorage (access_token + refresh_token)
+3. **Fetch User Data** → GET /users/me with access_token
+4. **Auto Refresh** → Axios interceptor handles token refresh
+5. **Logout** → Clear all tokens and redirect
+
+### File Structure
+
+```
+src/
+├── components/     # Reusable UI components
+├── pages/         # Page components
+├── store/         # Zustand auth store
+├── services/      # API client with interceptors
+├── types/         # TypeScript interfaces
+└── schemas/       # Zod validation schemas
+```
+
+## ⚠️ Backend Integration Notes
+
+- **Response Format**: Backend must return `{ access_token, refresh_token }`
+- **No User Object**: Frontend fetches user data separately via `/users/me`
+- **Refresh Endpoint**: Must accept refresh_token in Authorization header
+- **CORS**: Make sure backend allows frontend origin
+
+## 🚀 Production Considerations
+
+- Replace localStorage with httpOnly cookies for better security
+- Implement refresh token rotation
+- Add rate limiting for auth endpoints
+- Use HTTPS in production
+- Consider implementing logout endpoint to invalidate tokens

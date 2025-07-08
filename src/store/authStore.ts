@@ -6,17 +6,20 @@ import { authAPI } from '@/services/api';
 interface AuthState {
   user: User | null;
   token: string | null;
+  refreshToken: string | null;
   isAuthenticated: boolean;
   isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
   signup: (name: string, email: string, password: string) => Promise<void>;
   logout: () => void;
   checkAuth: () => Promise<void>;
+  refreshAccessToken: () => Promise<void>;
 }
 
-export const useAuthStore = create<AuthState>()((set) => ({
+export const useAuthStore = create<AuthState>()((set, get) => ({
   user: null,
   token: null,
+  refreshToken: null,
   isAuthenticated: false,
   isLoading: false,
 
@@ -26,30 +29,46 @@ export const useAuthStore = create<AuthState>()((set) => ({
       const response = await authAPI.login({ email, password });
       console.log('📡 Login API response:', response);
       
-      // Handle both 'token' and 'access_token' from backend
-      const token = response.token || response.access_token;
+      // Handle both old format (token) and new format (access_token + refresh_token)
+      const accessToken = response.access_token || response.token;
+      const refreshToken = response.refresh_token;
       
-      console.log('🔑 Token received from backend:', token);
+      console.log('🔑 Access token received:', accessToken);
+      console.log('🔄 Refresh token received:', refreshToken);
       
-      if (!token) {
-        throw new Error('No token received from backend');
+      if (!accessToken) {
+        throw new Error('No access token received from backend');
       }
       
-      // If backend doesn't return user object, create one from email
-      const user = response.user || {
-        id: 'temp_id',
-        name: email.split('@')[0],
-        email: email,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      };
+      // Store tokens
+      localStorage.setItem('access_token', accessToken);
+      if (refreshToken) {
+        localStorage.setItem('refresh_token', refreshToken);
+      }
+      // Keep backward compatibility
+      localStorage.setItem('token', accessToken);
       
-      console.log('👤 User data:', user);
+      // Since backend doesn't return user, we need to fetch it separately
+      let user;
+      try {
+        user = await authAPI.getMe();
+        console.log('👤 User data fetched:', user);
+      } catch (userError) {
+        // If we can't get user data, create a minimal user object
+        console.warn('Could not fetch user data, creating minimal user object');
+        user = {
+          id: 'unknown',
+          name: email.split('@')[0],
+          email: email,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        };
+      }
       
-      localStorage.setItem('token', token);
       set({
         user,
-        token,
+        token: accessToken,
+        refreshToken,
         isAuthenticated: true,
         isLoading: false,
       });
@@ -67,29 +86,46 @@ export const useAuthStore = create<AuthState>()((set) => ({
       const response = await authAPI.signup({ name, email, password });
       console.log('📡 Signup API response:', response);
       
-      // Handle both 'token' and 'access_token' from backend
-      const token = response.token || response.access_token;
+      // Handle both old format (token) and new format (access_token + refresh_token)
+      const accessToken = response.access_token || response.token;
+      const refreshToken = response.refresh_token;
       
-      if (!token) {
-        throw new Error('No token received from backend');
+      if (!accessToken) {
+        throw new Error('No access token received from backend');
       }
       
-      // Create user object from the data we have
-      const user = response.user || {
-        id: 'temp_id',
-        name: name,
-        email: email,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      };
+      // Store tokens
+      localStorage.setItem('access_token', accessToken);
+      if (refreshToken) {
+        localStorage.setItem('refresh_token', refreshToken);
+      }
+      // Keep backward compatibility
+      localStorage.setItem('token', accessToken);
       
-      console.log('🔑 Token received:', token);
-      console.log('👤 User created:', user);
+      // Since backend doesn't return user, we need to fetch it separately
+      let user;
+      try {
+        user = await authAPI.getMe();
+        console.log('👤 User data fetched:', user);
+      } catch (userError) {
+        // If we can't get user data, create a minimal user object
+        console.warn('Could not fetch user data, creating minimal user object');
+        user = {
+          id: 'unknown',
+          name: name,
+          email: email,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        };
+      }
       
-      localStorage.setItem('token', token);
+      console.log('🔑 Access token received:', accessToken);
+      console.log('🔄 Refresh token received:', refreshToken);
+      
       set({
         user,
-        token,
+        token: accessToken,
+        refreshToken,
         isAuthenticated: true,
         isLoading: false,
       });
@@ -102,16 +138,19 @@ export const useAuthStore = create<AuthState>()((set) => ({
 
   logout: () => {
     localStorage.removeItem('token');
+    localStorage.removeItem('access_token');
+    localStorage.removeItem('refresh_token');
     set({
       user: null,
       token: null,
+      refreshToken: null,
       isAuthenticated: false,
       isLoading: false,
     });
   },
 
   checkAuth: async () => {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('access_token') || localStorage.getItem('token');
     if (!token) {
       set({ isAuthenticated: false });
       return;
@@ -120,20 +159,60 @@ export const useAuthStore = create<AuthState>()((set) => ({
     set({ isLoading: true });
     try {
       const user = await authAPI.getMe();
+      const refreshToken = localStorage.getItem('refresh_token');
       set({
         user,
         token,
+        refreshToken,
         isAuthenticated: true,
         isLoading: false,
       });
     } catch (error) {
       localStorage.removeItem('token');
+      localStorage.removeItem('access_token');
+      localStorage.removeItem('refresh_token');
       set({
         user: null,
         token: null,
+        refreshToken: null,
         isAuthenticated: false,
         isLoading: false,
       });
+    }
+  },
+
+  refreshAccessToken: async () => {
+    try {
+      const response = await authAPI.refreshToken();
+      const { access_token, refresh_token } = response;
+      
+      localStorage.setItem('access_token', access_token);
+      localStorage.setItem('token', access_token); // Keep backward compatibility
+      
+      if (refresh_token) {
+        localStorage.setItem('refresh_token', refresh_token);
+      }
+      
+      set({
+        token: access_token,
+        refreshToken: refresh_token || get().refreshToken,
+      });
+      
+      console.log('✅ Token refreshed successfully');
+    } catch (error) {
+      console.error('❌ Token refresh failed:', error);
+      // Clear all tokens and redirect to login
+      localStorage.removeItem('token');
+      localStorage.removeItem('access_token');
+      localStorage.removeItem('refresh_token');
+      set({
+        user: null,
+        token: null,
+        refreshToken: null,
+        isAuthenticated: false,
+        isLoading: false,
+      });
+      throw error;
     }
   },
 }));

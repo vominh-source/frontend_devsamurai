@@ -18,9 +18,14 @@ export interface SignUpRequest {
 }
 
 export interface AuthResponse {
-  user?: User;
-  token?: string;
-  access_token?: string;
+  access_token: string;
+  refresh_token: string;
+  // Note: Backend doesn't return user object, we fetch it separately
+}
+
+export interface RefreshTokenResponse {
+  access_token: string;
+  refresh_token?: string;
 }
 
 export interface ApiError {
