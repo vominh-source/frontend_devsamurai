@@ -7,7 +7,9 @@ Modern user authentication application with automatic token refresh functionalit
 ### 1. Install Dependencies
 
 ```bash
+# Frontend
 npm install
+
 ```
 
 ### 2. Environment Setup
