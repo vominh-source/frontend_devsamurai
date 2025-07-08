@@ -12,15 +12,7 @@ npm install
 
 ```
 
-### 2. Environment Setup
-
-**Frontend (.env):**
-
-```env
-VITE_API_BASE_URL=http://localhost:3000
-```
-
-### 3. Run Application
+### 2. Run Application
 
 ```bash
 npm run dev
